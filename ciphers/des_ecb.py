@@ -129,29 +129,45 @@ PC2 = [14, 17, 11, 24, 1, 5,
 
 
 class Operations:
+    from typing import List
+
+
     @staticmethod
-    def string_to_bitset(string: str) -> list:
+    def string_to_bitset(string: str) -> list[str]:
         """
         Converts a string into a list of binary digits (bitset).
 
-        Args:
-            string (str): The input string to be converted.
-
-        Returns:
-            list: A list of binary digits representing the string.
+        UTF-8 encoding is used so all Unicode characters are preserved.
 
         Examples:
-            >>> Operations.string_to_bitset('A')
+            >>> Operations.string_to_bitset("A")
             ['0', '1', '0', '0', '0', '0', '0', '1']
-            >>> len(Operations.string_to_bitset('ab'))
-            16
-            >>> Operations.string_to_bitset(' ')
-            ['0', '0', '1', '0', '0', '0', '0', '0']
-        """
-        return list("".join(format(ord(char), "08b") for char in string))
 
+            >>> len(Operations.string_to_bitset("ab"))
+            16
+
+            >>> Operations.string_to_bitset(" ")
+            ['0', '0', '1', '0', '0', '0', '0', '0']
+
+            >>> text = "你"
+            >>> Operations.bitset_to_string(
+            ...     Operations.string_to_bitset(text)
+            ... )
+            '你'
+
+            >>> text = "🚀"
+            >>> Operations.bitset_to_string(
+            ...     Operations.string_to_bitset(text)
+            ... )
+            '🚀'
+        """
+        return list(
+            "".join(format(byte, "08b") for byte in string.encode("utf-8"))
+        )
     @staticmethod
-    def pad_right_to_multiple_of_n(bitset: list, length: int) -> list:
+    def pad_right_to_multiple_of_n(
+        bitset: list[str], length: int
+    ) -> list[str]:        
         """
         Pads the bitset with zeros on the right until
         its length is a multiple of `length`.
@@ -175,7 +191,9 @@ class Operations:
         return bitset
 
     @staticmethod
-    def pad_left_to_multiple_of_n(bitset: list, length: int) -> list:
+    def pad_left_to_multiple_of_n(
+        bitset: list[str], length: int
+    ) -> list[str]:
         """
         Pads the bitset with zeros on the left until
         its length is a multiple of length.
@@ -222,7 +240,9 @@ class Operations:
         return format(int("".join(bitset), 2), "016x")
 
     @staticmethod
-    def hex_to_bitset(hex_string: str, left_pad: int) -> list:
+    def hex_to_bitset(
+        hex_string: str, left_pad: int
+    ) -> list[str]:
         """
         Converts a hexadecimal string to a bitset
         and pads the bitset to a specified length.
@@ -245,29 +265,38 @@ class Operations:
         )
 
     @staticmethod
-    def bitset_to_string(bitset: list) -> str:
+    def bitset_to_string(bitset: list[str]) -> str:
         """
-        Converts a bitset into a string by interpreting every 8 bits as a character.
+        Converts a bitset into a string.
 
-        Args:
-            bitset (list): The list of binary digits (bitset).
-
-        Returns:
-            str: The decoded string.
+        The bitset is interpreted as UTF-8 encoded bytes.
 
         Examples:
-            >>> Operations.bitset_to_string(['0', '1', '0', '0', '0', '0', '0', '1'])
+            >>> Operations.bitset_to_string(
+            ...     ['0', '1', '0', '0', '0', '0', '0', '1']
+            ... )
             'A'
-            >>> Operations.bitset_to_string(['0', '1', '0', '0', '0', '1',\
-'0', '0', '0', '1', '0', '1', '0', '1', '1', '0'])
-            'DV'
+
+            >>> Operations.bitset_to_string(
+            ...     Operations.string_to_bitset("你")
+            ... )
+            '你'
+
+            >>> Operations.bitset_to_string(
+            ...     Operations.string_to_bitset("🚀")
+            ... )
+            '🚀'
         """
-        return "".join(
-            chr(int("".join(bitset[i : i + 8]), 2)) for i in range(0, len(bitset), 8)
-        )
+        byte_values = [
+            int("".join(bitset[i : i + 8]), 2)
+            for i in range(0, len(bitset), 8)
+        ]
+        return bytes(byte_values).decode("utf-8")
 
     @staticmethod
-    def xor(bitset1: list, bitset2: list) -> list:
+    def xor(
+        bitset1: list[str], bitset2: list[str]
+    ) -> list[str]:
         """
         Applies a bitwise XOR operation between two bitsets of the same length.
 
@@ -297,7 +326,9 @@ class Operations:
         return [str(int(bitset1[i]) ^ int(bitset2[i])) for i in range(len(bitset1))]
 
     @staticmethod
-    def shift_left(bitset: list, position: int) -> list:
+    def shift_left(
+        bitset: list[str], position: int
+    ) -> list[str]:
         """
         Performs a rotated left shift on a bitset by `position` positions.
 
@@ -320,7 +351,9 @@ class Operations:
         return bitset[position:] + bitset[:position]
 
     @staticmethod
-    def permute(bitset: list, permutation: list) -> list:
+    def permute(
+        bitset: list[str], permutation: list[int]
+    ) -> list[str]:
         """
         Permutes a bitset according to a given permutation table.
 
@@ -369,7 +402,7 @@ class Des:
         return "".join(random.choice("0123456789abcdef") for i in range(16))
 
     @staticmethod
-    def key_schedule(key: str) -> list:
+    def key_schedule(key: str) -> list[list[str]]:
         """
         Generates 16 subkeys (round keys) from a given
         64-bit hexadecimal key using the DES key schedule.
@@ -410,7 +443,10 @@ class Des:
         return keys
 
     @staticmethod
-    def des(keys: list, plain_bitset: list) -> list:
+    def des(
+    keys: list[list[str]],
+    plain_bitset: list[str],
+    ) -> list[str]:       
         """
         Encrypts a plain bitset using the provided
         subkeys with DES encryption algorithm.
@@ -487,6 +523,11 @@ class Des:
             >>> encrypted = Des.encrypt(key, input_string)
             >>> encrypted  # Checking the cipher to ensure consistency
             'c84e3c8fb646872720b224896db4f60'
+            
+            >>> key = "133457799BBCDFF1"
+            >>> text = "Hello 你 🚀"
+            >>> Des.decrypt(key, Des.encrypt(key, text))
+            'Hello 你 🚀'
         """
         plain_bitset = Operations.string_to_bitset(input_string)
         padded_bitset = Operations.pad_right_to_multiple_of_n(plain_bitset, 64)
@@ -512,6 +553,12 @@ class Des:
             >>> decrypted = Des.decrypt(key, encrypted_string)
             >>> decrypted  # Checking the cipher to ensure consistency
             'Test string'
+               
+            >>> key = "133457799BBCDFF1"
+            >>> text = "你好🚀"
+            >>> encrypted = Des.encrypt(key, text)
+            >>> Des.decrypt(key, encrypted)
+            '你好🚀'
         """
         cipher_bitset = Operations.hex_to_bitset(cipher_text, 64)
         keys = Des.key_schedule(key)[::-1]
